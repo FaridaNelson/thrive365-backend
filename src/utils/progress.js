@@ -1,9 +1,8 @@
 function calcProgressPercent(steps = []) {
-  const total = steps.length;
-  if (total === 0) return 0;
-
-  const completedCount = steps.filter((step) => step.done).length;
-  return Math.round((completedCount / total) * 100);
+  const list = Array.isArray(steps) ? steps : [];
+  if (list.length === 0) return 0;
+  const doneCount = list.filter((s) => s.done).length;
+  return Math.round((doneCount / list.length) * 100);
 }
 
 module.exports = { calcProgressPercent };

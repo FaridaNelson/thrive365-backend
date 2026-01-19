@@ -8,7 +8,7 @@ const router = express.Router();
 
 const stepSchema = z.object({
   text: z.string().min(1).max(200),
-  done: z.boolean().optional(),
+  done: z.boolean().default(false),
 });
 
 const createSchema = z.object({
@@ -60,12 +60,10 @@ router.post("/", auth, async (req, res) => {
     });
   } catch (err) {
     if (err.code === 11000) {
-      return res
-        .status(409)
-        .json({
-          message:
-            "That slot already has a goal. Choose slot 1–4 not already used.",
-        });
+      return res.status(409).json({
+        message:
+          "That slot already has a goal. Choose slot 1–4 not already used.",
+      });
     }
     if (err.name === "ZodError")
       return res
