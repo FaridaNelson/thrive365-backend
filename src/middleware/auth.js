@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 
 function auth(req, res, next) {
   const header = req.headers.authorization;
-  console.log("AUTH DEBUG header =", header);
 
   if (!header) {
     return res.status(401).json({ message: "Missing Authorization header" });
@@ -23,7 +22,6 @@ function auth(req, res, next) {
     req.user = { id: payload.sub };
     return next();
   } catch (err) {
-    console.log("AUTH DEBUG jwt.verify error =", err.message);
     return res.status(401).json({ message: "Invalid or expired token" });
   }
 }
