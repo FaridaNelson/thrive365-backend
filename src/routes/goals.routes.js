@@ -3,6 +3,7 @@ const { z } = require("zod");
 const { auth } = require("../middleware/auth");
 const Goal = require("../models/Goal");
 const { calcProgressPercent } = require("../utils/progress");
+const { calcEffectiveStatus } = require("../utils/status");
 
 const router = express.Router();
 
@@ -19,12 +20,13 @@ const createSchema = z.object({
   notes: z.string().max(4000).optional(),
   imageUrls: z.array(z.string().url()).optional(),
   steps: z.array(stepSchema).optional(),
+  status: z.enum(["active", "paused", "completed"]).optional(),
 });
 
 router.get("/", auth, async (req, res) => {
   const goals = await Goal.find({ userId: req.user.id })
     .sort({ slot: 1 })
-    .select("slot title imageUrls steps");
+    .select("slot title imageUrls steps status");
 
   const shaped = goals.map((g) => ({
     id: g._id,
@@ -32,6 +34,7 @@ router.get("/", auth, async (req, res) => {
     title: g.title,
     coverImageUrl: g.imageUrls?.[0] || "",
     progressPercent: calcProgressPercent(g.steps),
+    status: calcEffectiveStatus(g),
   }));
 
   return res.json(shaped);
@@ -49,6 +52,7 @@ router.post("/", auth, async (req, res) => {
       reason: data.reason ?? "",
       notes: data.notes ?? "",
       imageUrls: data.imageUrls ?? [],
+      status: data.status ?? "active",
       steps: (data.steps ?? []).map((s) => ({ text: s.text, done: !!s.done })),
     });
 
@@ -57,12 +61,13 @@ router.post("/", auth, async (req, res) => {
       slot: created.slot,
       title: created.title,
       progressPercent: calcProgressPercent(created.steps),
+      status: calcEffectiveStatus(created),
     });
   } catch (err) {
     if (err.code === 11000) {
       return res.status(409).json({
         message:
-          "That slot already has a goal. Choose slot 1–4 not already used.",
+          "That slot already has a goal. Choose slot 1-4 that is not already used.",
       });
     }
     if (err.name === "ZodError")
@@ -91,6 +96,7 @@ router.get("/:goalId", auth, async (req, res) => {
     imageUrls: goal.imageUrls,
     steps: goal.steps,
     progressPercent: calcProgressPercent(goal.steps),
+    status: calcEffectiveStatus(goal),
   });
 });
 
@@ -110,6 +116,7 @@ router.patch("/:goalId", auth, async (req, res) => {
     if (data.definition !== undefined) goal.definition = data.definition;
     if (data.reason !== undefined) goal.reason = data.reason;
     if (data.notes !== undefined) goal.notes = data.notes;
+    if (data.status !== undefined) goal.status = data.status;
     if (data.imageUrls !== undefined) goal.imageUrls = data.imageUrls;
     if (data.steps !== undefined)
       goal.steps = data.steps.map((s) => ({ text: s.text, done: !!s.done }));
@@ -119,6 +126,7 @@ router.patch("/:goalId", auth, async (req, res) => {
     return res.json({
       id: goal._id,
       progressPercent: calcProgressPercent(goal.steps),
+      status: calcEffectiveStatus(goal),
       goal,
     });
   } catch (err) {
