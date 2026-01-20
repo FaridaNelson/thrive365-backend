@@ -4,7 +4,13 @@ const userSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, trim: true, lowercase: true },
     passwordHash: { type: String, required: true },
-    username: { type: String, default: "New User", trim: true, maxlength: 40 },
+    username: {
+      type: String,
+      required: true,
+      default: "New User",
+      trim: true,
+      maxlength: 40,
+    },
     avatarUrl: { type: String, default: "", trim: true },
   },
   { timestamps: true },
