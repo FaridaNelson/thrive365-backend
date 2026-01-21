@@ -13,6 +13,9 @@ const signupSchema = z.object({
   avatarUrl: z.string().url().optional().or(z.literal("")),
 });
 
+
+// CREATE USER
+
 router.post("/signup", async (req, res) => {
   try {
     const data = signupSchema.parse(req.body);
@@ -59,6 +62,8 @@ const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 });
+
+// LOGIN USER
 
 router.post("/login", async (req, res) => {
   try {
