@@ -23,7 +23,10 @@ const createSchema = z.object({
   status: z.enum(["active", "paused", "completed"]).optional(),
 });
 
-router.get("/", auth, async (req, res) => {
+
+//GET GOALS
+
+router.get("/goals", auth, async (req, res) => {
   const goals = await Goal.find({ userId: req.user.id })
     .sort({ slot: 1 })
     .select("slot title imageUrls steps status");
@@ -40,7 +43,10 @@ router.get("/", auth, async (req, res) => {
   return res.json(shaped);
 });
 
-router.post("/", auth, async (req, res) => {
+
+//CREATE GOAL
+
+router.post("/goal", auth, async (req, res) => {
   try {
     const data = createSchema.parse(req.body);
 
@@ -79,6 +85,8 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
+// GET A SINGLE GOAL
+
 router.get("/:goalId", auth, async (req, res) => {
   const goal = await Goal.findOne({
     _id: req.params.goalId,
@@ -102,6 +110,8 @@ router.get("/:goalId", auth, async (req, res) => {
 
 const patchSchema = createSchema.partial().omit({ slot: true }); // slot stays fixed after creation
 
+
+//EDIT GOAL
 router.patch("/:goalId", auth, async (req, res) => {
   try {
     const data = patchSchema.parse(req.body);
@@ -138,6 +148,8 @@ router.patch("/:goalId", auth, async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 });
+
+//DELETE GOAL
 
 router.delete("/:goalId", auth, async (req, res) => {
   const deleted = await Goal.findOneAndDelete({
