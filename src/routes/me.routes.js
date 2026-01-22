@@ -7,7 +7,7 @@ const router = express.Router();
 
 // GET CURRENT USER
 
-router.get("/me", auth, async (req, res) => {
+router.get("/", auth, async (req, res) => {
   const user = await User.findById(req.user.id).select(
     "email username avatarUrl",
   );
@@ -27,7 +27,7 @@ const patchSchema = z.object({
 
 //EDIT CURRENT USER
 
-router.patch("/me", auth, async (req, res) => {
+router.patch("/", auth, async (req, res) => {
   try {
     const data = patchSchema.parse(req.body);
 
