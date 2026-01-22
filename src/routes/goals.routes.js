@@ -24,7 +24,7 @@ const createSchema = z.object({
 
 //GET GOALS
 
-router.get("/goals", auth, async (req, res) => {
+router.get("/", auth, async (req, res) => {
   const goals = await Goal.find({ userId: req.user.id })
     .sort({ slot: 1 })
     .select("slot title imageUrls steps status");
