@@ -11,9 +11,12 @@ const stepSchema = z.object({
   text: z.string().min(1).max(200),
   done: z.boolean().default(false),
 });
+const CATEGORY_ENUM = ["Career", "Finance", "Education", "Fitness"];
 
 const createSchema = z.object({
   title: z.string().min(1).max(80),
+  category: z.enum(CATEGORY_ENUM),
+  displayColor: z.string().optional(),
   definition: z.string().max(2000).optional(),
   reason: z.string().max(2000).optional(),
   notes: z.string().max(4000).optional(),
@@ -27,12 +30,14 @@ const createSchema = z.object({
 router.get("/", auth, async (req, res) => {
   const goals = await Goal.find({ userId: req.user.id })
     .sort({ slot: 1 })
-    .select("slot title imageUrls steps status");
+    .select("slot title imageUrls steps status category displayColor");
 
   const shaped = goals.map((g) => ({
     id: g._id,
     slot: g.slot,
     title: g.title,
+    category: g.category,
+    displayColor: g.displayColor,
     coverImageUrl: g.imageUrls?.[0] || "",
     progressPercent: calcProgressPercent(g.steps),
     status: calcEffectiveStatus(g),
@@ -60,6 +65,8 @@ router.post("/", auth, async (req, res) => {
       userId: req.user.id,
       slot,
       title: data.title,
+      category: data.category,
+      displayColor: data.displayColor ?? "#CFCFCF",
       definition: data.definition ?? "",
       reason: data.reason ?? "",
       notes: data.notes ?? "",
@@ -72,6 +79,8 @@ router.post("/", auth, async (req, res) => {
       id: created._id,
       slot: created.slot,
       title: created.title,
+      category: created.category,
+      displayColor: created.displayColor,
       coverImageUrl: created.imageUrls?.[0] || "",
       progressPercent: calcProgressPercent(created.steps),
       status: calcEffectiveStatus(created),
@@ -105,6 +114,8 @@ router.get("/:goalId", auth, async (req, res) => {
     id: goal._id,
     slot: goal.slot,
     title: goal.title,
+    category: goal.category,
+    displayColor: goal.displayColor,
     definition: goal.definition,
     reason: goal.reason,
     notes: goal.notes,
@@ -129,6 +140,8 @@ router.patch("/:goalId", auth, async (req, res) => {
     if (!goal) return res.status(404).json({ message: "Goal not found" });
 
     if (data.title !== undefined) goal.title = data.title;
+    if (data.category !== undefined) goal.category = data.category;
+    if (data.displayColor !== undefined) goal.displayColor = data.displayColor;
     if (data.definition !== undefined) goal.definition = data.definition;
     if (data.reason !== undefined) goal.reason = data.reason;
     if (data.notes !== undefined) goal.notes = data.notes;
