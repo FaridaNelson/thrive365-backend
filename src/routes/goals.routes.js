@@ -13,7 +13,6 @@ const stepSchema = z.object({
 });
 
 const createSchema = z.object({
-  slot: z.number().int().min(1).max(4),
   title: z.string().min(1).max(80),
   definition: z.string().max(2000).optional(),
   reason: z.string().max(2000).optional(),
@@ -22,7 +21,6 @@ const createSchema = z.object({
   steps: z.array(stepSchema).optional(),
   status: z.enum(["active", "paused", "completed"]).optional(),
 });
-
 
 //GET GOALS
 
@@ -43,16 +41,24 @@ router.get("/goals", auth, async (req, res) => {
   return res.json(shaped);
 });
 
-
-//CREATE GOAL
-
-router.post("/goal", auth, async (req, res) => {
+// POST /goals controller
+router.post("/", auth, async (req, res) => {
   try {
     const data = createSchema.parse(req.body);
 
+    const existing = await Goal.find({ userId: req.user.id }).select("slot");
+    const used = new Set(existing.map((g) => g.slot));
+    const slot = [1, 2, 3, 4].find((s) => !used.has(s));
+
+    if (!slot) {
+      return res
+        .status(409)
+        .json({ message: "All goal slots are full (1-4)." });
+    }
+
     const created = await Goal.create({
       userId: req.user.id,
-      slot: data.slot,
+      slot,
       title: data.title,
       definition: data.definition ?? "",
       reason: data.reason ?? "",
@@ -66,6 +72,7 @@ router.post("/goal", auth, async (req, res) => {
       id: created._id,
       slot: created.slot,
       title: created.title,
+      coverImageUrl: created.imageUrls?.[0] || "",
       progressPercent: calcProgressPercent(created.steps),
       status: calcEffectiveStatus(created),
     });
@@ -109,7 +116,6 @@ router.get("/:goalId", auth, async (req, res) => {
 });
 
 const patchSchema = createSchema.partial().omit({ slot: true }); // slot stays fixed after creation
-
 
 //EDIT GOAL
 router.patch("/:goalId", auth, async (req, res) => {

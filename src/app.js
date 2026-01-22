@@ -9,8 +9,15 @@ const goalsRoutes = require("./routes/goals.routes");
 
 const app = express();
 
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true, // Enable cookies and other credentials
+  }),
+);
+
 app.use(helmet());
-app.use(cors());
+
 app.use(express.json());
 app.use(morgan("dev"));
 
