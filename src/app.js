@@ -9,12 +9,29 @@ const goalsRoutes = require("./routes/goals.routes");
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://thrive365-frontend.vercel.app/",
+];
+
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
-    credentials: true, // Enable cookies and other credentials
+    origin(origin, cb) {
+      if (!origin) return cb(null, true);
+
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+
+      if (/^https:\/\/thrive365-frontend.*\.vercel\.app$/.test(origin)) {
+        return cb(null, true);
+      }
+      return cb(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+
+app.options("*", cors());
 
 app.use(helmet());
 
