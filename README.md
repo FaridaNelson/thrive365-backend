@@ -1,5 +1,3 @@
-# thrive365-backend
-Backend API for Thrive365 - goals, subtasks, auth (TripleTen Jan'26 CodeJam)
 # Thrive365 Backend
 
 Backend API for **Thrive365**, an intentional yearly planning and goal-tracking application designed to help users define meaningful goals, break them into actionable steps, and track progress throughout the year.
