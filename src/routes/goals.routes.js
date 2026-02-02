@@ -8,6 +8,7 @@ const { calcEffectiveStatus } = require("../utils/status");
 const router = express.Router();
 
 const stepSchema = z.object({
+  _id: z.string().optional(),
   text: z.string().min(1).max(200),
   done: z.boolean().default(false),
 });
@@ -96,9 +97,15 @@ router.post("/", auth, async (req, res) => {
       return res
         .status(400)
         .json({ message: "Invalid input", errors: err.errors });
-    console.error(err);
-    return res.status(500).json({ message: "Server error" });
   }
+  if (err.name === "ValidationError") {
+    return res.status(400).json({
+      message: "Validation error",
+      errors: err.errors,
+    });
+  }
+  console.error(err);
+  return res.status(500).json({ message: "Server error" });
 });
 
 // GET A SINGLE GOAL
@@ -163,9 +170,19 @@ router.patch("/:goalId", auth, async (req, res) => {
       return res
         .status(400)
         .json({ message: "Invalid input", errors: err.errors });
-    console.error(err);
-    return res.status(500).json({ message: "Server error" });
   }
+
+  if (err.name === "ValidationError") {
+    return res.status(400).json({
+      message: "Validation error",
+      errors: err.errors,
+    });
+  }
+  console.error("PATCH /goals error:", err);
+  console.error("err.name:", err?.name);
+  console.error("err.message:", err?.message);
+  console.error("err.stack:", err?.stack);
+  return res.status(500).json({ message: "Server error" });
 });
 
 //DELETE GOAL
